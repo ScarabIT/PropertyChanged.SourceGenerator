@@ -38,7 +38,7 @@ public static class StringConstants
             /// <summary>
             /// Instruct PropertyChanged.SourceGenerator to also raise INPC notifications for the named properties whenever the property this is applied to changes
             /// </summary>
-            [global::System.AttributeUsage(global::System.AttributeTargets.Field | global::System.AttributeTargets.Property, AllowMultiple = true)]
+            [global::System.AttributeUsage(global::System.AttributeTargets.Property, AllowMultiple = true)]
             [global::System.Diagnostics.Conditional("DEBUG")]
             internal class AlsoNotifyAttribute : global::System.Attribute
             {
@@ -52,7 +52,7 @@ public static class StringConstants
             /// <summary>
             /// Instruct PropertyChanged.SourceGenerator to raise INPC notifications for this property whenever one of the named generated properties is changed
             /// </summary>
-            [global::System.AttributeUsage(global::System.AttributeTargets.Field | global::System.AttributeTargets.Property, AllowMultiple = false)]
+            [global::System.AttributeUsage(global::System.AttributeTargets.Property, AllowMultiple = false)]
             [global::System.Diagnostics.Conditional("DEBUG")]
             internal class DependsOnAttribute : global::System.Attribute
             {

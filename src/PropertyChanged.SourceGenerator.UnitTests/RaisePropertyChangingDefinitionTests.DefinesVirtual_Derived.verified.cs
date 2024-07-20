@@ -1,7 +1,7 @@
 ﻿partial class Derived
 {
     public event global::System.ComponentModel.PropertyChangingEventHandler PropertyChanging;
-    public string Bar { get; set; }
+    public partial string Bar { get; set; }
     protected virtual void OnPropertyChanging(global::System.ComponentModel.PropertyChangingEventArgs eventArgs)
     {
         this.PropertyChanging?.Invoke(this, eventArgs);

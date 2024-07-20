@@ -2,6 +2,6 @@
 {
     partial class SomeViewModel
     {
-        public string A { get; set; }
+        public partial string A { get; set; }
     }
 }

@@ -1,14 +1,15 @@
 ﻿partial class SomeViewModel
 {
-    public string Foo
+    private string __foo;
+    public partial string Foo
     {
-        get => this._foo;
+        get => this.__foo;
         set
         {
-            if (!global::System.Collections.Generic.EqualityComparer<string>.Default.Equals(value, this._foo))
+            if (!global::System.Collections.Generic.EqualityComparer<string>.Default.Equals(value, this.__foo))
             {
                 this.NotifyPropertyChanging(@"Foo");
-                this._foo = value;
+                this.__foo = value;
                 this.NotifyPropertyChanged(global::PropertyChanged.SourceGenerator.Internal.EventArgsCache.PropertyChanged_Foo);
             }
         }

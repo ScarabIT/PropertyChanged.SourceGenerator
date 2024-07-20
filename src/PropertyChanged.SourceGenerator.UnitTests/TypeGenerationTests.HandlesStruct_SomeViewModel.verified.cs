@@ -1,4 +1,4 @@
 ﻿partial struct SomeViewModel
 {
-    public int Foo { get; set; }
+    public partial int Foo { get; set; }
 }

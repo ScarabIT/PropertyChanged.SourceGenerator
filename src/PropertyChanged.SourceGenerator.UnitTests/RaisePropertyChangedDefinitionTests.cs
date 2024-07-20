@@ -15,7 +15,7 @@ public class RaisePropertyChangedDefinitionTests : TestsBase
 {
     private static readonly CSharpSyntaxVisitor<SyntaxNode?>[] rewriters = new CSharpSyntaxVisitor<SyntaxNode?>[]
     {
-        RemovePropertiesRewriter.Instance, RemoveDocumentationRewriter.Instance,
+        RemovePropertiesRewriter.Instance, RemoveDocumentationRewriter.Instance, RemoveBackingFieldsRewriter.Instance,
     };
 
     [Test]
@@ -26,7 +26,7 @@ public class RaisePropertyChangedDefinitionTests : TestsBase
             public partial class SomeViewModel : INotifyPropertyChanged
             {
                 [Notify]
-                private string _foo;
+                public partial string Foo { get; set; }
             }
             """;
 
@@ -42,7 +42,7 @@ public class RaisePropertyChangedDefinitionTests : TestsBase
             {
                 public event PropertyChangedEventHandler PropertyChanged;
                 [Notify]
-                private string _foo;
+                public partial string Foo { get; set; }
             }
             """;
 
@@ -61,7 +61,7 @@ public class RaisePropertyChangedDefinitionTests : TestsBase
             public partial class Derived : Base
             {
                 [Notify]
-                private string _foo;
+                public partial string Foo { get; set; }
             }
             """;
 
@@ -85,7 +85,7 @@ public class RaisePropertyChangedDefinitionTests : TestsBase
             public partial class Derived : Base
             {
                 [Notify]
-                private string _foo;
+                public partial string Foo { get; set; }
             }
             """;
 
@@ -109,11 +109,11 @@ public class RaisePropertyChangedDefinitionTests : TestsBase
             public partial class Derived : Base
             {
                 [Notify, DependsOn("Bar")]
-                private string _foo;
+                public partial string Foo { get; set; }
             }
             """;
 
-        this.AssertThat(input, It.HasFile("Derived", RemovePropertiesRewriter.Instance).HasDiagnostics(
+        this.AssertThat(input, It.HasFile("Derived", [RemovePropertiesRewriter.Instance, RemoveBackingFieldsRewriter.Instance]).HasDiagnostics(
             // (5,20): Warning INPC022: Method 'OnPropertyChanged' is non-virtual. Functionality such as dependencies on base properties will not work. Please make this method virtual
             // OnPropertyChanged
             Diagnostic("INPC022", @"OnPropertyChanged").WithLocation(5, 20),
@@ -130,7 +130,7 @@ public class RaisePropertyChangedDefinitionTests : TestsBase
         string input = """
             public partial class Derived
             {
-                [Notify, DependsOn("Foo")] private string _bar;
+                [Notify, DependsOn("Foo")] public partial string Bar { get; set; }
             }
             """;
 
@@ -149,7 +149,7 @@ public class RaisePropertyChangedDefinitionTests : TestsBase
             }
             public partial class Derived : Base
             {
-                [Notify, DependsOn("Foo")] private string _bar;
+                [Notify, DependsOn("Foo")] public partial string Bar { get; set; }
             }
             """;
 
@@ -168,7 +168,7 @@ public class RaisePropertyChangedDefinitionTests : TestsBase
             }
             public partial class Derived : Base
             {
-                [Notify, DependsOn("Foo")] private string _bar;
+                [Notify, DependsOn("Foo")] public partial string Bar { get; set; }
             }
             """;
 
@@ -187,7 +187,7 @@ public class RaisePropertyChangedDefinitionTests : TestsBase
             }
             public partial class Derived : Base
             {
-                [Notify, DependsOn("Foo")] private string _bar;
+                [Notify, DependsOn("Foo")] public partial string Bar { get; set; }
             }
             """;
 
@@ -206,7 +206,7 @@ public class RaisePropertyChangedDefinitionTests : TestsBase
             }
             public partial class Derived : Base
             {
-                [Notify, DependsOn("Foo")] private string _bar;
+                [Notify, DependsOn("Foo")] public partial string Bar { get; set; }
             }
             """;
 
@@ -225,7 +225,7 @@ public class RaisePropertyChangedDefinitionTests : TestsBase
             }
             public partial class Derived : Base
             {
-                [Notify, DependsOn("Foo")] private string _bar;
+                [Notify, DependsOn("Foo")] public partial string Bar { get; set; }
                 private void OnBarChanged() { }
             }
             """;
@@ -245,7 +245,7 @@ public class RaisePropertyChangedDefinitionTests : TestsBase
             }
             public partial class Derived : Base
             {
-                [Notify, DependsOn("Foo")] private string _bar;
+                [Notify, DependsOn("Foo")] public partial string Bar { get; set; }
                 private void OnBarChanged(string oldValue, string newValue) { }
             }
             """;
@@ -269,7 +269,7 @@ public class Base : INotifyPropertyChanged
 }}
 public partial class Derived : Base
 {{
-    [Notify, DependsOn(""Foo"")] private string _bar;
+    [Notify, DependsOn(""Foo"")] public partial string Bar {{ get; set; }}
 }}";
 
         this.AssertThat(input, It.HasFile("Derived", rewriters));
@@ -281,7 +281,7 @@ public partial class Derived : Base
         string input = """
             public sealed partial class SomeViewModel
             {
-                [Notify] string _foo;
+                [Notify] public partial string Foo { get; set; }
             }
             """;
 

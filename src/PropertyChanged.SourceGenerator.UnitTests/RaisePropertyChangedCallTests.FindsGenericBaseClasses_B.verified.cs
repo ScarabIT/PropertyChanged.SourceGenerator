@@ -1,4 +1,4 @@
 ﻿partial class B
 {
-    public string Bar { get; set; }
+    public partial string Bar { get; set; }
 }

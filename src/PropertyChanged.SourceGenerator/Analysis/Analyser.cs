@@ -237,6 +237,7 @@ public partial class Analyser
         if (!IsPartial(property))
         {
             // TODO
+            this.diagnostics.ReportPropertyIsNotPartial(property);
             return null;
         }
         if (property.GetMethod == null || property.SetMethod == null)
@@ -296,6 +297,8 @@ public partial class Analyser
 
     private string TransformName(ISymbol member, Configuration config)
     {
+        // TODO! Needs changing
+
         string name = member.Name;
         foreach (string removePrefix in config.RemovePrefixes)
         {
@@ -331,7 +334,7 @@ public partial class Analyser
             name += config.AddSuffix;
         }
 
-        return name;
+        return "_" + name;
     }
 
     private void ReportPropertyNameCollisions(TypeAnalysisBuilder typeAnalysis, List<TypeAnalysisBuilder> baseTypeAnalyses)
@@ -394,10 +397,6 @@ public partial class Analyser
         foreach (var attribute in attributes)
         {
             if (attribute.AttributeClass?.Name == "AlsoNotifyAttribute")
-            {
-                this.diagnostics.ReportAlsoNotifyAttributeNotValidOnMember(attribute, member);
-            }
-            else if (attribute.AttributeClass?.Name == "PropertyAttributeAttribute")
             {
                 this.diagnostics.ReportAlsoNotifyAttributeNotValidOnMember(attribute, member);
             }

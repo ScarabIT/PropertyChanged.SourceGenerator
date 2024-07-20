@@ -15,7 +15,7 @@ public class RaisePropertyChangedCallTests : TestsBase
 {
     private static readonly CSharpSyntaxVisitor<SyntaxNode?>[] rewriters = new CSharpSyntaxVisitor<SyntaxNode?>[]
     {
-        RemovePropertiesRewriter.Instance, RemoveDocumentationRewriter.Instance,
+        RemovePropertiesRewriter.Instance, RemoveDocumentationRewriter.Instance, RemoveBackingFieldsRewriter.Instance,
     };
 
     [Test]
@@ -25,7 +25,7 @@ public class RaisePropertyChangedCallTests : TestsBase
             public partial class SomeViewModel
             {
                 [Notify]
-                private string _foo;
+                public partial string Foo { get; set; }
             }
             """;
 
@@ -40,7 +40,7 @@ public class RaisePropertyChangedCallTests : TestsBase
             public partial class SomeViewModel : INotifyPropertyChanged
             {
                 [Notify]
-                private string _foo;
+                public partial string Foo { get; set; }
             }
             """;
 
@@ -61,7 +61,7 @@ public class RaisePropertyChangedCallTests : TestsBase
                 }
 
                 [Notify]
-                private string _foo;
+                public partial string Foo { get; set; }
             }
             """;
 
@@ -85,7 +85,7 @@ public class RaisePropertyChangedCallTests : TestsBase
             public partial class Derived : Base
             {
                 [Notify]
-                private string _foo;
+                public partial string Foo { get; set; }
             }
             """;
 
@@ -103,7 +103,7 @@ public class RaisePropertyChangedCallTests : TestsBase
                 private void NotifyPropertyChanged(string name) =>
                     PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
                 [Notify]
-                private string _foo;
+                public partial string Foo { get; set; }
             }
             """;
 
@@ -121,7 +121,7 @@ public class RaisePropertyChangedCallTests : TestsBase
                 private void NotifyPropertyChanged(PropertyChangedEventArgs args, object oldValue, object newValue) =>
                     PropertyChanged?.Invoke(this, args);
                 [Notify]
-                private string _foo;
+                public partial string Foo { get; set; }
             }
             """;
 
@@ -139,7 +139,7 @@ public class RaisePropertyChangedCallTests : TestsBase
                 private void NotifyPropertyChanged(string name, object oldValue, object newValue) =>
                     PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
                 [Notify]
-                private string _foo;
+                public partial string Foo { get; set; }
             }
             """;
 
@@ -157,7 +157,7 @@ public class RaisePropertyChangedCallTests : TestsBase
                 internal void OnPropertyChanged(string name, string other) =>
                     PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
                 [Notify]
-                private string _foo;
+                public partial string Foo { get; set; }
             }
             """;
 
@@ -179,7 +179,7 @@ public class RaisePropertyChangedCallTests : TestsBase
                 internal void OnPropertyChanged(string name, string other) =>
                     PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
                 [Notify]
-                private string _foo;
+                public partial string Foo { get; set; }
             }
             """;
 
@@ -198,7 +198,7 @@ public class RaisePropertyChangedCallTests : TestsBase
                     PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
                 private void RaisePropertyChanged(string name) { }
                 [Notify]
-                private string _foo;
+                public partial string Foo { get; set; }
             }
             """;
 
@@ -222,12 +222,12 @@ public class RaisePropertyChangedCallTests : TestsBase
             public partial class B : A
             {
                 [Notify]
-                private string _foo;
+                public partial string Foo { get; set; }
             }
             public partial class C : B
             {
                 [Notify]
-                private string _bar;
+                public partial string Bar { get; set; }
                 protected void OnPropertyChanged(string name) { }
             }
             """;
@@ -246,7 +246,7 @@ public class RaisePropertyChangedCallTests : TestsBase
                 protected virtual void NotifyOfPropertyChanging(string name) => PropertyChanging?.Invoke(this, new PropertyChangingEventArgs(name));
 
                 [Notify]
-                private int _foo;
+                public partial int Foo { get; set; }
             }
             """;
 
@@ -266,7 +266,7 @@ public class RaisePropertyChangedCallTests : TestsBase
 
             public partial class Derived : Base
             {
-                [Notify] private string _bar;
+                [Notify] public partial string Bar { get; set; }
                 protected override void OnPropertyChanged(string name) { }
             }
             """;
@@ -286,12 +286,12 @@ public class RaisePropertyChangedCallTests : TestsBase
             public partial class A<T>
             {
                 [Notify]
-            private string _foo;
+                public partial string Foo { get; set; }
             }
             public partial class B : A<string>
             {
                 [Notify]
-                private string _bar;
+                public partial string Bar { get; set; }
             }
             """;
         // It doesn't generate a new RaisePropertyChanged method

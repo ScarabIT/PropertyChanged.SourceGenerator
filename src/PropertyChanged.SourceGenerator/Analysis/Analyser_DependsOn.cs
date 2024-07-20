@@ -17,7 +17,7 @@ public partial class Analyser
     private void ResolveDependsOn(TypeAnalysisBuilder typeAnalysis, IReadOnlyDictionary<ISymbol, List<AttributeData>> members, Configuration config)
     {
         var lookups = new TypeAnalysisLookups(typeAnalysis);
-        foreach (var member in typeAnalysis.TypeSymbol.GetMembers().Where(x => !x.IsImplicitlyDeclared && x is IFieldSymbol or IPropertySymbol))
+        foreach (var member in typeAnalysis.TypeSymbol.GetMembers().OfType<IPropertySymbol>().Where(x => !x.IsImplicitlyDeclared))
         {
             // Does it have a DependsOn attribute?
             IEnumerable<AttributeData> attributes = members.TryGetValue(member, out var attributesOut) ? attributesOut : Array.Empty<AttributeData>();
@@ -28,14 +28,14 @@ public partial class Analyser
             {
                 this.ResolveManualDependsOn(typeAnalysis, lookups, member, dependsOnAttributes);
             }
-            else if (config.EnableAutoNotify && member is IPropertySymbol propertySymbol)
+            else if (config.EnableAutoNotify)
             {
-                this.ResolveAutoDependsOn(typeAnalysis, propertySymbol, propertySymbol, lookups, emptyPropertyHashSet);
+                this.ResolveAutoDependsOn(typeAnalysis, member, member, lookups, emptyPropertyHashSet);
             }
         }
     }
 
-    private void ResolveManualDependsOn(TypeAnalysisBuilder typeAnalysis, TypeAnalysisLookups lookups, ISymbol member, List<AttributeData> dependsOnAttributes)
+    private void ResolveManualDependsOn(TypeAnalysisBuilder typeAnalysis, TypeAnalysisLookups lookups, IPropertySymbol property, List<AttributeData> dependsOnAttributes)
     {
         foreach (var attribute in dependsOnAttributes)
         {
@@ -45,45 +45,26 @@ public partial class Analyser
                 if (string.IsNullOrWhiteSpace(dependsOn))
                     continue;
 
-                AlsoNotifyMember? alsoNotifyMember = null;
-                // If we're generating this property, make sure we use the generated name...
-                if (lookups.TryGet(member, out var memberAnalysis))
+                var alsoNotifyMember = AlsoNotifyMember.FromProperty(property, this.FindOnPropertyNameChangedMethod(typeAnalysis.TypeSymbol, property));
+                if (lookups.TryGet(dependsOn!, out var dependsOnMember))
                 {
-                    alsoNotifyMember = AlsoNotifyMember.FromMemberAnalysis(memberAnalysis);
-                }
-                else if (member is IPropertySymbol property)
-                {
-                    alsoNotifyMember = AlsoNotifyMember.FromProperty(property,
-                        this.FindOnPropertyNameChangedMethod(typeAnalysis.TypeSymbol, property));
+                    // Is this the name of a property we're generating on this type?
+                    dependsOnMember.AddAlsoNotify(alsoNotifyMember);
                 }
                 else
                 {
-                    // If we're not generating anything from this, and it's not a property, raise
-                    this.diagnostics.RaiseDependsOnAppliedToFieldWithoutNotify(attribute, member);
-                }
-
-                if (alsoNotifyMember != null)
-                {
-                    if (lookups.TryGet(dependsOn!, out var dependsOnMember))
+                    // We'll assume it'll pass through RaisePropertyChanged
+                    if (typeAnalysis.INotifyPropertyChanged!.CanCallRaiseMethod &&
+                        typeAnalysis.INotifyPropertyChanged.RaiseMethodType == RaisePropertyChangedMethodType.None)
                     {
-                        // Is this the name of a property we're generating on this type?
-                        dependsOnMember.AddAlsoNotify(alsoNotifyMember.Value);
+                        this.diagnostics.ReportDependsOnSpecifiedButRaisePropertyChangedMethodCannotBeOverridden(attribute, property, dependsOn!, typeAnalysis.INotifyPropertyChanged.RaiseMethodName!);
                     }
-                    else
+                    if (typeAnalysis.INotifyPropertyChanging!.CanCallRaiseMethod &&
+                        typeAnalysis.INotifyPropertyChanging.RaiseMethodType == RaisePropertyChangedMethodType.None)
                     {
-                        // We'll assume it'll pass through RaisePropertyChanged
-                        if (typeAnalysis.INotifyPropertyChanged!.CanCallRaiseMethod &&
-                            typeAnalysis.INotifyPropertyChanged.RaiseMethodType == RaisePropertyChangedMethodType.None)
-                        {
-                            this.diagnostics.ReportDependsOnSpecifiedButRaisePropertyChangedMethodCannotBeOverridden(attribute, member, dependsOn!, typeAnalysis.INotifyPropertyChanged.RaiseMethodName!);
-                        }
-                        if (typeAnalysis.INotifyPropertyChanging!.CanCallRaiseMethod &&
-                            typeAnalysis.INotifyPropertyChanging.RaiseMethodType == RaisePropertyChangedMethodType.None)
-                        {
-                            this.diagnostics.ReportDependsOnSpecifiedButRaisePropertyChangingMethodCannotBeOverridden(attribute, member, dependsOn!, typeAnalysis.INotifyPropertyChanged.RaiseMethodName!);
-                        }
-                        typeAnalysis.AddDependsOn(dependsOn!, alsoNotifyMember.Value);
+                        this.diagnostics.ReportDependsOnSpecifiedButRaisePropertyChangingMethodCannotBeOverridden(attribute, property, dependsOn!, typeAnalysis.INotifyPropertyChanged.RaiseMethodName!);
                     }
+                    typeAnalysis.AddDependsOn(dependsOn!, alsoNotifyMember);
                 }
             }
         }

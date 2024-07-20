@@ -23,7 +23,7 @@ public class TypeGenerationTests : TestsBase
                 {
                     public event PropertyChangedEventHandler PropertyChanged;
                     [Notify]
-                    private string _foo;
+                    public partial string Foo { get; set; }
                 }
             }
             """;
@@ -40,14 +40,14 @@ public class TypeGenerationTests : TestsBase
             {
                 public event PropertyChangedEventHandler PropertyChanged;
                 [Notify]
-                private string _foo;
+                public partial string Foo { get; set; }
             }
             """;
 
         this.AssertThat(input, It.HasDiagnostics(
             // (2,14): Warning INPC002: Type 'SomeViewModel' must be partial in order for PropertyChanged.SourceGenerator to generate properties
             // SomeViewModel
-            Diagnostic("INPC002", @"SomeViewModel").WithLocation(2, 14)
+            Diagnostic("INPC002", "SomeViewModel").WithLocation(2, 14)
         ));
     }
 
@@ -58,7 +58,7 @@ public class TypeGenerationTests : TestsBase
             public partial class SomeViewModel<@class>
             {
                 [Notify]
-                private string _foo;
+                public partial string Foo { get; set; }
             }
             """;
 
@@ -72,7 +72,7 @@ public class TypeGenerationTests : TestsBase
             public partial class SomeViewModel<T> where T : class
             {
                 [Notify]
-                private string _foo;
+                public partial string Foo { get; set; }
             }
             """;
 
@@ -86,7 +86,7 @@ public class TypeGenerationTests : TestsBase
             public partial class SomeViewModel
             {
                 [Notify]
-                private int _foo;
+                public partial int Foo { get; set; }
                 protected void OnPropertyChanged(string propertyName) => PropertyChanged?.Invoke(this, null);
             }
             """;
@@ -105,7 +105,7 @@ public class TypeGenerationTests : TestsBase
                 {
                     partial class C
                     {
-                        [Notify] private string _field;
+                        [Notify] public partial string Property { get; set; }
                     }
                 }
             }
@@ -122,7 +122,7 @@ public class TypeGenerationTests : TestsBase
             {
                 partial class C
                 {
-                    [Notify] private string _field;
+                    [Notify] public partial string Property { get; set; }
                 }
             }
             """;
@@ -141,7 +141,7 @@ public class TypeGenerationTests : TestsBase
             {
                 partial class SomeViewModel
                 {
-                    [Notify] string _a;
+                    [Notify] public partial string A { get; set; }
                 }
             }
 
@@ -149,7 +149,7 @@ public class TypeGenerationTests : TestsBase
             {
                 partial class SomeViewModel
                 {
-                    [Notify] string _a;
+                    [Notify] public partial string A { get; set; }
                 }
             }
             """;
@@ -169,7 +169,7 @@ public class TypeGenerationTests : TestsBase
                 public event PropertyChangedEventHandler PropertyChanged;
 
                 [Notify]
-                private int _foo;
+                public partial int Foo { get; set; }
             }
             """;
 
@@ -183,7 +183,7 @@ public class TypeGenerationTests : TestsBase
             partial record SomeViewModel
             {
                 [Notify]
-                private int _foo;
+                public partial int Foo { get; set; }
             }
             """;
 

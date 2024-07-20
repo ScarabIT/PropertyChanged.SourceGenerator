@@ -15,7 +15,7 @@ public class RaisePropertyChangingDefinitionTests : TestsBase
 {
     private static readonly CSharpSyntaxVisitor<SyntaxNode?>[] rewriters = new CSharpSyntaxVisitor<SyntaxNode?>[]
     {
-        RemoveInpcMembersRewriter.Changed, RemovePropertiesRewriter.Instance, RemoveDocumentationRewriter.Instance,
+        RemoveInpcMembersRewriter.Changed, RemovePropertiesRewriter.Instance, RemoveDocumentationRewriter.Instance, RemoveBackingFieldsRewriter.Instance,
     };
 
 
@@ -26,7 +26,7 @@ public class RaisePropertyChangingDefinitionTests : TestsBase
             public partial class SomeViewModel
             {
                 [Notify]
-                private string _foo;
+                public partial string Foo { get; set; }
             }
             """;
 
@@ -41,7 +41,7 @@ public class RaisePropertyChangingDefinitionTests : TestsBase
             public partial class SomeViewModel : INotifyPropertyChanging
             {
                 [Notify]
-                private string _foo;
+                public partial string Foo { get; set; }
             }
             """;
 
@@ -57,7 +57,7 @@ public class RaisePropertyChangingDefinitionTests : TestsBase
             {
                 public event PropertyChangingEventHandler PropertyChanging;
                 [Notify]
-                private string _foo;
+                public partial string Foo { get; set; }
             }
             """;
 
@@ -76,7 +76,7 @@ public class RaisePropertyChangingDefinitionTests : TestsBase
             public partial class Derived : Base
             {
                 [Notify]
-                private string _foo;
+                public partial string Foo { get; set; }
             }
             """;
 
@@ -100,7 +100,7 @@ public class RaisePropertyChangingDefinitionTests : TestsBase
             public partial class Derived : Base
             {
                 [Notify]
-                private string _foo;
+                public partial string Foo { get; set; }
             }
             """;
 
@@ -124,7 +124,7 @@ public class RaisePropertyChangingDefinitionTests : TestsBase
             public partial class Derived : Base
             {
                 [Notify, DependsOn("Bar")]
-                private string _foo;
+                public partial string Foo { get; set; }
             }
             """;
 
@@ -146,7 +146,7 @@ public class RaisePropertyChangingDefinitionTests : TestsBase
             using System.ComponentModel;
             public partial class Derived : INotifyPropertyChanging
             {
-                [Notify, DependsOn("Foo")] private string _bar;
+                [Notify, DependsOn("Foo")] public partial string Bar { get; set; }
             }
             """;
 
@@ -165,7 +165,7 @@ public class RaisePropertyChangingDefinitionTests : TestsBase
             }
             public partial class Derived : Base
             {
-                [Notify, DependsOn("Foo")] private string _bar;
+                [Notify, DependsOn("Foo")] public partial string Bar { get; set; }
             }
             """;
 
@@ -184,7 +184,7 @@ public class RaisePropertyChangingDefinitionTests : TestsBase
             }
             public partial class Derived : Base
             {
-                [Notify, DependsOn("Foo")] private string _bar;
+                [Notify, DependsOn("Foo")] public partial string Bar { get; set; }
             }
             """;
 
@@ -203,7 +203,7 @@ public class RaisePropertyChangingDefinitionTests : TestsBase
             }
             public partial class Derived : Base
             {
-                [Notify, DependsOn("Foo")] private string _bar;
+                [Notify, DependsOn("Foo")] public partial string Bar { get; set; }
             }
             """;
 
@@ -222,7 +222,7 @@ public class RaisePropertyChangingDefinitionTests : TestsBase
             }
             public partial class Derived : Base
             {
-                [Notify, DependsOn("Foo")] private string _bar;
+                [Notify, DependsOn("Foo")] public partial string Bar { get; set; }
             }
             """;
 
@@ -241,7 +241,7 @@ public class RaisePropertyChangingDefinitionTests : TestsBase
             }
             public partial class Derived : Base
             {
-                [Notify, DependsOn("Foo")] private string _bar;
+                [Notify, DependsOn("Foo")] public partial string Bar { get; set; }
                 private void OnBarChanging() { }
             }
             """;
@@ -261,7 +261,7 @@ public class RaisePropertyChangingDefinitionTests : TestsBase
             }
             public partial class Derived : Base
             {
-                [Notify, DependsOn("Foo")] private string _bar;
+                [Notify, DependsOn("Foo")] public partial string Bar { get; set; }
                 private void OnBarChanging(string oldValue) { }
             }
             """;
@@ -285,7 +285,7 @@ public class Base : INotifyPropertyChanging
 }}
 public partial class Derived : Base
 {{
-    [Notify, DependsOn(""Foo"")] private string _bar;
+    [Notify, DependsOn(""Foo"")] public partial string Bar {{ get; set; }}
 }}";
 
         this.AssertThat(input, It.HasFile("Derived", rewriters));

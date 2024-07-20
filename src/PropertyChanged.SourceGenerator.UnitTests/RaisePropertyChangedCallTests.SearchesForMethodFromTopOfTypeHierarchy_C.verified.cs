@@ -1,13 +1,14 @@
 ﻿partial class C
 {
-    public string Bar
+    private string __bar;
+    public partial string Bar
     {
-        get => this._bar;
+        get => this.__bar;
         set
         {
-            if (!global::System.Collections.Generic.EqualityComparer<string>.Default.Equals(value, this._bar))
+            if (!global::System.Collections.Generic.EqualityComparer<string>.Default.Equals(value, this.__bar))
             {
-                this._bar = value;
+                this.__bar = value;
                 this.OnPropertyChanged(@"Bar");
             }
         }

@@ -4,7 +4,7 @@
     {
         partial class C
         {
-            public string Field { get; set; }
+            public partial string Property { get; set; }
         }
     }
 }

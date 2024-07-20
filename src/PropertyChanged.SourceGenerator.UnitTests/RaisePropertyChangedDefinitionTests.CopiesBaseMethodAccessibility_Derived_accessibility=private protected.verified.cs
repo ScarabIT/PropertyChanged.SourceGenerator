@@ -1,6 +1,6 @@
 ﻿partial class Derived
 {
-    public string Bar { get; set; }
+    public partial string Bar { get; set; }
     private protected override void OnPropertyChanged(string propertyName)
     {
         base.OnPropertyChanged(propertyName);

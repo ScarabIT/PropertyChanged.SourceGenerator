@@ -16,7 +16,6 @@ public class PropertyChangedSourceGenerator : IIncrementalGenerator
         "PropertyChanged.SourceGenerator.AlsoNotifyAttribute",
         "PropertyChanged.SourceGenerator.DependsOnAttribute",
         "PropertyChanged.SourceGenerator.IsChangedAttribute",
-        "PropertyChanged.SourceGenerator.PropertyAttributeAttribute",
     };
 
     public void Initialize(IncrementalGeneratorInitializationContext context)

@@ -32,6 +32,15 @@ public class DiagnosticReporter
         this.AddDiagnostic(typeIsNotPartial, typeSymbol.Locations, typeSymbol.Name);
     }
 
+    private static readonly DiagnosticDescriptor propertyIsNotPartial = CreateDescriptor(
+        "INPC038",
+        "Property is not partial",
+        "Property '{0}' must be partial in order for PropertyChanged.SourceGenerator to generate it");
+    public void ReportPropertyIsNotPartial(IPropertySymbol propertySymbol)
+    {
+        this.AddDiagnostic(propertyIsNotPartial, propertySymbol.Locations, propertySymbol.Name);
+    }
+
     private static readonly DiagnosticDescriptor memberWithNameAlreadyExists = CreateDescriptor(
         "INPC003",
         "Member with this name already exists",
@@ -97,15 +106,6 @@ public class DiagnosticReporter
         this.AddDiagnostic(alsoNotifyAttributeNotValidOnMember, AttributeLocations(attribute, member));
     }
 
-    private static readonly DiagnosticDescriptor propertyAttributeNotValidOnMember = CreateDescriptor(
-        "INPC036",
-        "PropertyAttribute is not valid here",
-        "[PropertyAttribute is only valid on members which also have [Notify]. Skipping");
-    public void ReportyPropertyAttributeNotValidOnMember(AttributeData attribute, ISymbol member)
-    {
-        this.AddDiagnostic(propertyAttributeNotValidOnMember, AttributeLocations(attribute, member));
-    }
-
     private static readonly DiagnosticDescriptor alsoNotifyPropertyDoesNotExist = CreateDescriptor(
         "INPC009",
         "AlsoNotify property name does not exist",
@@ -113,15 +113,6 @@ public class DiagnosticReporter
     public void ReportAlsoNotifyPropertyDoesNotExist(string alsoNotify, AttributeData attribute, ISymbol member)
     {
         this.AddDiagnostic(alsoNotifyPropertyDoesNotExist, AttributeLocations(attribute, member), alsoNotify);
-    }
-
-    private static readonly DiagnosticDescriptor dependsOnAppliedToFieldWithoutNotify = CreateDescriptor(
-        "INPC011",
-        "DependsOn field does not have [Notify]",
-        "[DependsOn] must only be applied to fields which also have [Notify]");
-    public void RaiseDependsOnAppliedToFieldWithoutNotify(AttributeData attribute, ISymbol member)
-    {
-        this.AddDiagnostic(dependsOnAppliedToFieldWithoutNotify, AttributeLocations(attribute, member));
     }
 
     private static readonly DiagnosticDescriptor alsoNotifyForSelf = CreateDescriptor(
