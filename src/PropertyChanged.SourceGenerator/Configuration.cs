@@ -22,10 +22,10 @@ public class Configuration
         "OnPropertyChanging", "RaisePropertyChanging", "NotifyOfPropertyChanging", "NotifyPropertyChanging"
     );
 
-    public ImmutableArray<string> RemovePrefixes { get; set; } = ImmutableArray.Create("_");
+    public ImmutableArray<string> RemovePrefixes { get; set; } = ImmutableArray<string>.Empty;
     public ImmutableArray<string> RemoveSuffixes { get; set; } = ImmutableArray<string>.Empty;
-    public string? AddPrefix { get; set; } = null;
+    public string? AddPrefix { get; set; } = "_";
     public string? AddSuffix { get; set; } = null;
-    public Capitalisation FirstLetterCapitalisation { get; set; } = Capitalisation.Uppercase;
+    public Capitalisation FirstLetterCapitalisation { get; set; } = Capitalisation.Lowercase;
     public bool EnableAutoNotify { get; set; } = true;
 }

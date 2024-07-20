@@ -23,23 +23,14 @@ public class PropertyChangedSourceGenerator : IIncrementalGenerator
     {
         context.RegisterPostInitializationOutput(ctx => ctx.AddSource("PropertyChanged.SourceGenerator.Attributes", StringConstants.Attributes));
 
-        // Collect all types which contain a field/property decorated with NotifyAttribute.
+        // Collect all types which contain a property decorated with NotifyAttribute.
         // These will never be cached! That's OK: we'll generate a model in the next step which can be.
         // There will probably be duplicate symbols in here.
         var attributeContainingTypeSources = attributeNames.Select(attribute =>
         {
             return context.SyntaxProvider.ForAttributeWithMetadataName(
                 attribute,
-                (node, token) => node is VariableDeclaratorSyntax
-                {
-                    Parent: VariableDeclarationSyntax
-                    {
-                        Parent: FieldDeclarationSyntax
-                        {
-                            AttributeLists.Count: > 0
-                        }
-                    }
-                } || node is PropertyDeclarationSyntax
+                (node, token) => node is PropertyDeclarationSyntax
                 {
                     AttributeLists.Count: > 0,
                 },

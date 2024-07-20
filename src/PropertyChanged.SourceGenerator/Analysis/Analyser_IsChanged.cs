@@ -47,8 +47,9 @@ public partial class Analyser
                 // If it's got [Notify] on it, use the generated property name
                 if (memberAnalysis != null)
                 {
-                    typeAnalysis.IsChangedPropertyName = memberAnalysis.Name;
-                    typeAnalysis.IsChangedSetterIsPrivate = memberAnalysis.SetterAccessibility == Accessibility.Private;
+                    typeAnalysis.IsChangedPropertyName = memberAnalysis.BackingFieldName;
+                    // TODO
+                    //typeAnalysis.IsChangedSetterIsPrivate = memberAnalysis.SetterAccessibility == Accessibility.Private;
                 }
                 else
                 {

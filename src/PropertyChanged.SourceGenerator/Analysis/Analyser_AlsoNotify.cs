@@ -30,9 +30,9 @@ public partial class Analyser
                     // Remember that we're probably, but not necessarily, notifying a property which we're also
                     // generating.
                     // Allow null and emptystring as special cases
-                    if (alsoNotify == member.Name)
+                    if (alsoNotify == member.BackingFieldName)
                     {
-                        this.diagnostics.ReportAlsoNotifyForSelf(alsoNotify, attribute, member.BackingMember);
+                        this.diagnostics.ReportAlsoNotifyForSelf(alsoNotify, attribute, member.Property);
                     }
                     else
                     {
@@ -42,7 +42,7 @@ public partial class Analyser
                             bool foundAlsoNotify = false;
                             if (baseTypeAnalyses.Prepend(typeAnalysis)
                                 .SelectMany(x => x.Members)
-                                .FirstOrDefault(x => x.Name == alsoNotify)
+                                .FirstOrDefault(x => x.BackingFieldName == alsoNotify)
                                 is { } foundMemberAnalysis)
                             {
                                 foundAlsoNotify = true;
@@ -70,7 +70,7 @@ public partial class Analyser
 
                             if (!foundAlsoNotify)
                             {
-                                this.diagnostics.ReportAlsoNotifyPropertyDoesNotExist(alsoNotify!, attribute, member.BackingMember);
+                                this.diagnostics.ReportAlsoNotifyPropertyDoesNotExist(alsoNotify!, attribute, member.Property);
                             }
                         }
 

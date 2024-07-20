@@ -52,15 +52,6 @@ public class DiagnosticReporter
         this.AddDiagnostic(anotherMemberHasSameGeneratedName, thisMember.Locations, thisMember.Name, name, otherMember.Name);
     }
 
-    private static readonly DiagnosticDescriptor incompatiblePropertyAccessibilities = CreateDescriptor(
-        "INPC005",
-        "Incompatible property accessibilities",
-        "C# propertes may not have an internal getter and protected setter, or protected setter and internal getter. Defaulting both to protected internal");
-    public void ReportIncompatiblePropertyAccessibilities(ISymbol member, AttributeData notifyAttribute)
-    {
-        this.AddDiagnostic(incompatiblePropertyAccessibilities, AttributeLocations(notifyAttribute, member));
-    }
-
     private static readonly DiagnosticDescriptor couldNotFindCallableRaisePropertyChangedOverload = CreateDescriptor(
         "INPC006",
         "Could not find callable method to raise PropertyChanged event",

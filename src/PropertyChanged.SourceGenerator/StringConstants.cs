@@ -17,35 +17,9 @@ public static class StringConstants
         namespace PropertyChanged.SourceGenerator
         {
             /// <summary>
-            /// Specifies the accessibility of a generated property getter
-            /// </summary>
-            internal enum Getter
-            {
-                Public = 6,
-                ProtectedInternal = 5,
-                Internal = 4,
-                Protected = 3,
-                PrivateProtected = 2,
-                Private = 1,
-            }
-
-            /// <summary>
-            /// Specifies the accessibility of a generated property getter
-            /// </summary>
-            internal enum Setter
-            {
-                Public = 6,
-                ProtectedInternal = 5,
-                Internal = 4,
-                Protected = 3,
-                PrivateProtected = 2,
-                Private = 1,
-            }
-
-            /// <summary>
             /// Instruct PropertyChanged.SourceGenerator to generate a property which implements INPC using this backing field
             /// </summary>
-            [global::System.AttributeUsage(global::System.AttributeTargets.Field | global::System.AttributeTargets.Property, AllowMultiple = false)]
+            [global::System.AttributeUsage(global::System.AttributeTargets.Property, AllowMultiple = false)]
             [global::System.Diagnostics.Conditional("DEBUG")]
             internal class NotifyAttribute : global::System.Attribute
             {
@@ -55,30 +29,10 @@ public static class StringConstants
                 public NotifyAttribute() { }
 
                 /// <summary>
-                /// Generate a property with the given name, and optionally the given getter and setter accessibilities
+                /// Generate a property with the given backing field name
                 /// </summary>
-                /// <param name="name">Name of the generated property</param>
-                /// <param name="get">Accessibility of the generated getter</param>
-                /// <param name="set">Accessibility of the generated setter</param>
-                public NotifyAttribute(string name, Getter get = Getter.Public, Setter set = Setter.Public) { }
-
-                /// <summary>
-                /// Generate a property whose name is derived from the name of this field, with the given getter and optionally setter accessibilities
-                /// </summary>
-                /// <param name="get">Accessibility of the generated getter</param>
-                /// <param name="set">Accessibility of the generated setter</param>
-                public NotifyAttribute(Getter get, Setter set = Setter.Public) { }
-
-                /// <summary>
-                /// Generate a property whose name is derived from the name of this field, with a public getter and the given setter accessibility
-                /// </summary>
-                /// <param name="set">Accessibility of the generated setter</param>
-                public NotifyAttribute(Setter set) { }
-
-                /// <summary>
-                /// If <c>true</c>, the generated property will be <c>virtual</c>.
-                /// </summary>
-                public bool IsVirtual { get; set; }
+                /// <param name="name">Name of the generated backing field</param>
+                public NotifyAttribute(string name) { }
             }
 
             /// <summary>
@@ -116,23 +70,6 @@ public static class StringConstants
             [global::System.Diagnostics.Conditional("DEBUG")]
             internal class IsChangedAttribute : global::System.Attribute
             {
-            }
-
-            /// <summary>
-            /// Specifies an attribute which will be added to the generated property for this backing field
-            /// </summary>
-            /// <remarks>
-            /// The string passed to this attribute will be placed verbatim into the generated code. All types must therefore by fully-qualified.
-            /// </remarks>
-            [global::System.AttributeUsage(global::System.AttributeTargets.Field | global::System.AttributeTargets.Property, AllowMultiple = true)]
-            [global::System.Diagnostics.Conditional("DEBUG")]
-            internal class PropertyAttributeAttribute : global::System.Attribute
-            {
-                /// <summary>
-                /// Specify an attribute which iwll be added to the generated property for this backing field
-                /// </summary>
-                /// <param name="attribute">An attribute to place on the generated property</param>
-                public PropertyAttributeAttribute(string attribute) { }
             }
         }
         """;

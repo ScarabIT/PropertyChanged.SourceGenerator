@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using PropertyChanged.SourceGenerator.Analysis;
 using PropertyChanged.SourceGenerator.EventArgs;
@@ -279,24 +280,15 @@ public class Generator
             this.writer.WriteLine(NullableContextToComment(context));
         }
 
-        var (propertyAccessibility, getterAccessibility, setterAccessibility) = CalculateAccessibilities(member);
+        // TODO: We may not want to generate this, if it already exists?
+        this.writer.WriteLine($"private {member.FullyQualifiedTypeName} {member.BackingFieldName};");
 
-        foreach (string line in member.DocComment)
-        {
-            this.writer.WriteLine($"/// {line}");
-        }
-
-        foreach (string attr in member.AttributesForGeneratedProperty)
-        {
-            this.writer.WriteLine(attr);
-        }
-
-        this.writer.WriteLine($"{propertyAccessibility}{(member.IsVirtual ? "virtual " : "")}{member.FullyQualifiedTypeName} {member.Name}");
+        this.writer.WriteLine($"{member.Modifiers} {member.FullyQualifiedTypeName} {member.Name}");
         this.writer.WriteLine("{");
         this.writer.Indent++;
 
-        this.writer.WriteLine($"{getterAccessibility}get => {backingMemberReference};");
-        this.writer.WriteLine($"{setterAccessibility}set");
+        this.writer.WriteLine($"{AccessibilityToString(member.GetterAccessibility)}get => {backingMemberReference};");
+        this.writer.WriteLine($"{AccessibilityToString(member.SetterAccessibility)}set");
         this.writer.WriteLine("{");
         this.writer.Indent++;
 
@@ -347,7 +339,7 @@ public class Generator
     }
 
     private static string GetBackingMemberReference(MemberAnalysis member) =>
-        "this." + member.BackingMemberSymbolName;
+        "this." + member.BackingFieldName;
 
     private void GenerateOldVariablesIfNecessary(TypeAnalysis type, MemberAnalysis member)
     {
@@ -514,28 +506,6 @@ public class Generator
         return builder.ToCacheAndLookup();
     }
 
-    private static (string property, string getter, string setter) CalculateAccessibilities(MemberAnalysis member)
-    {
-        string property;
-        string getter = "";
-        string setter = "";
-
-        if (member.GetterAccessibility >= member.SetterAccessibility)
-        {
-            property = AccessibilityToString(member.GetterAccessibility);
-            setter = member.GetterAccessibility == member.SetterAccessibility
-                ? ""
-                : AccessibilityToString(member.SetterAccessibility);
-        }
-        else
-        {
-            property = AccessibilityToString(member.SetterAccessibility);
-            getter = AccessibilityToString(member.GetterAccessibility);
-        }
-
-        return (property, getter, setter);
-    }
-
     private static string NullableContextToComment(NullableContextOptions context)
     {
         return context switch
@@ -547,10 +517,11 @@ public class Generator
         };
     }
 
-    private static string AccessibilityToString(Accessibility accessibility)
+    private static string AccessibilityToString(Accessibility? accessibility)
     {
         return accessibility switch
         {
+            null => "",
             Accessibility.Public => "public ",
             Accessibility.ProtectedOrInternal => "protected internal ",
             Accessibility.Internal => "internal ",

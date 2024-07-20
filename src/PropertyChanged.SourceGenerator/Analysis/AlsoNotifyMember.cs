@@ -32,7 +32,7 @@ public readonly record struct AlsoNotifyMember : IMember, IEquatable<AlsoNotifyM
         new(name, null, null, null);
 
     public static AlsoNotifyMember FromMemberAnalysis(MemberAnalysisBuilder memberAnalysis) =>
-        new(memberAnalysis.Name, memberAnalysis.Type, memberAnalysis.OnPropertyNameChanged, memberAnalysis.OnPropertyNameChanging);
+        new(memberAnalysis.BackingFieldName, memberAnalysis.Type, memberAnalysis.OnPropertyNameChanged, memberAnalysis.OnPropertyNameChanging);
     
     public static AlsoNotifyMember FromProperty(
         IPropertySymbol property,

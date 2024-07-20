@@ -176,10 +176,6 @@ public partial class Analyser
             MemberAnalysisBuilder? memberAnalysis = null;
             switch (member)
             {
-                case IFieldSymbol field when this.GetNotifyAttribute(attributes) is { } attribute:
-                    memberAnalysis = this.AnalyseField(field, attribute, attributes, config);
-                    break;
-
                 case IPropertySymbol property when this.GetNotifyAttribute(attributes) is { } attribute:
                     memberAnalysis = this.AnalyseProperty(property, attribute, attributes, config);
                     break;
@@ -234,38 +230,27 @@ public partial class Analyser
                 syntax.Modifiers.Any(SyntaxKind.PartialKeyword));
     }
 
-    private MemberAnalysisBuilder? AnalyseField(IFieldSymbol field, AttributeData notifyAttribute, List<AttributeData> attributes, Configuration config)
-    {
-        if (field.IsReadOnly)
-        {
-            this.diagnostics.RaiseReadonlyBackingMember(field);
-            return null;
-        }
-        var result = this.AnalyseMember(field, field.Type, notifyAttribute, attributes, config);
-        return result;
-    }
+    
 
     private MemberAnalysisBuilder? AnalyseProperty(IPropertySymbol property, AttributeData notifyAttribute, List<AttributeData> attributes, Configuration config)
     {
+        if (!IsPartial(property))
+        {
+            // TODO
+            return null;
+        }
         if (property.GetMethod == null || property.SetMethod == null)
         {
             this.diagnostics.RaiseBackingPropertyMustHaveGetterAndSetter(property);
             return null;
         }
-        var result = this.AnalyseMember(property, property.Type, notifyAttribute, attributes, config);
-        return result;
-    }
+        if (property.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax() is not PropertyDeclarationSyntax declarationSyntax)
+        {
+            // TODO? Can this even happen?
+            return null;
+        }
 
-    private MemberAnalysisBuilder? AnalyseMember(
-        ISymbol backingMember,
-        ITypeSymbol type,
-        AttributeData notifyAttribute,
-        List<AttributeData> attributes,
-        Configuration config)
-    {
         string? explicitName = null;
-        Accessibility getterAccessibility = Accessibility.Public;
-        Accessibility setterAccessibility = Accessibility.Public;
 
         foreach (var arg in notifyAttribute.ConstructorArguments)
         {
@@ -273,63 +258,40 @@ public partial class Analyser
             {
                 explicitName = (string?)arg.Value;
             }
-            else if (arg.Type?.Name == "Getter")
-            {
-                getterAccessibility = (Accessibility)(int)arg.Value!;
-            }
-            else if (arg.Type?.Name == "Setter")
-            {
-                setterAccessibility = (Accessibility)(int)arg.Value!;
-            }
         }
 
-        bool isVirtual = false;
-        foreach (var arg in notifyAttribute.NamedArguments)
-        {
-            if (arg.Key == "IsVirtual")
-            {
-                isVirtual = (bool)arg.Value.Value!;
-            }
-        }
-
-        // We can't have a getter/setter being internal, and the setter/getter being protected
-        if ((getterAccessibility == Accessibility.Internal && setterAccessibility == Accessibility.Protected) ||
-            (getterAccessibility == Accessibility.Protected && setterAccessibility == Accessibility.Internal))
-        {
-            this.diagnostics.ReportIncompatiblePropertyAccessibilities(type, notifyAttribute);
-            getterAccessibility = Accessibility.ProtectedOrInternal;
-            setterAccessibility = Accessibility.ProtectedOrInternal;
-        }
-
-        string name = explicitName ?? this.TransformName(backingMember, config);
+        string name = explicitName ?? this.TransformName(property, config);
         var result = new MemberAnalysisBuilder()
         {
-            BackingMember = backingMember,
-            Name = name,
-            Type = type,
-            IsVirtual = isVirtual,
+            Property = property,
+            Modifiers = declarationSyntax.Modifiers.ToString(),
+            BackingFieldName = name,
+            Type = property.Type,
             Attributes = attributes,
-            GetterAccessibility = getterAccessibility,
-            SetterAccessibility = setterAccessibility,
-            OnPropertyNameChanged = this.propertyChangedInterfaceAnalyser!.FindOnPropertyNameChangedMethod(backingMember.ContainingType, name, type, backingMember.ContainingType),
-            OnPropertyNameChanging = this.propertyChangingInterfaceAnalyser!.FindOnPropertyNameChangedMethod(backingMember.ContainingType, name, type, backingMember.ContainingType),
-            AttributesForGeneratedProperty = this.GetAttributesForGeneratedProperty(attributes),
-            DocComment = ParseDocComment(backingMember.GetDocumentationCommentXml()),
+            GetterAccessibility = property.GetMethod.DeclaredAccessibility == property.DeclaredAccessibility ? null : property.GetMethod.DeclaredAccessibility,
+            SetterAccessibility = property.SetMethod.DeclaredAccessibility == property.DeclaredAccessibility ? null : property.SetMethod.DeclaredAccessibility,
+            OnPropertyNameChanged = this.propertyChangedInterfaceAnalyser!.FindOnPropertyNameChangedMethod(property.ContainingType, name, property.Type, property.ContainingType),
+            OnPropertyNameChanging = this.propertyChangingInterfaceAnalyser!.FindOnPropertyNameChangedMethod(property.ContainingType, name, property.Type, property.ContainingType),
         };
 
-        if (type.IsReferenceType)
+        if (property.Type.IsReferenceType)
         {
-            if (this.nullableContextOptions.HasFlag(NullableContextOptions.Annotations) && type.NullableAnnotation == NullableAnnotation.None)
+            if (this.nullableContextOptions.HasFlag(NullableContextOptions.Annotations) && property.Type.NullableAnnotation == NullableAnnotation.None)
             {
                 result.NullableContextOverride = NullableContextOptions.Disable;
             }
-            else if (this.nullableContextOptions == NullableContextOptions.Disable && type.NullableAnnotation != NullableAnnotation.None)
+            else if (this.nullableContextOptions == NullableContextOptions.Disable && property.Type.NullableAnnotation != NullableAnnotation.None)
             {
                 result.NullableContextOverride = NullableContextOptions.Annotations;
             }
         }
 
         return result;
+
+        bool IsPartial(IPropertySymbol property) =>
+            property.DeclaringSyntaxReferences.Any(x =>
+                x.GetSyntax() is PropertyDeclarationSyntax syntax &&
+                syntax.Modifiers.Any(SyntaxKind.PartialKeyword));
     }
 
     private string TransformName(ISymbol member, Configuration config)
@@ -349,14 +311,6 @@ public partial class Analyser
                 name = name.Substring(0, name.Length - removeSuffix.Length);
             }
         }
-        if (config.AddPrefix != null)
-        {
-            name = config.AddPrefix + name;
-        }
-        if (config.AddSuffix != null)
-        {
-            name += config.AddSuffix;
-        }
         switch (config.FirstLetterCapitalisation)
         {
             case Capitalisation.None:
@@ -367,6 +321,14 @@ public partial class Analyser
             case Capitalisation.Lowercase:
                 name = char.ToLower(name[0]) + name.Substring(1);
                 break;
+        }
+        if (config.AddPrefix != null)
+        {
+            name = config.AddPrefix + name;
+        }
+        if (config.AddSuffix != null)
+        {
+            name += config.AddSuffix;
         }
 
         return name;
@@ -379,24 +341,24 @@ public partial class Analyser
         // these diagnostics
         var allDeclaredMemberNames = new HashSet<string>(TypeAndBaseTypes(typeAnalysis.TypeSymbol)
             .SelectMany(x => x.MemberNames)
-            .Concat(baseTypeAnalyses.SelectMany(x => x.Members.Select(y => y.Name))));
+            .Concat(baseTypeAnalyses.SelectMany(x => x.Members.Select(y => y.BackingFieldName))));
         for (int i = typeAnalysis.Members.Count - 1; i >= 0; i--)
         {
             var member = typeAnalysis.Members[i];
-            if (allDeclaredMemberNames.Contains(member.Name))
+            if (allDeclaredMemberNames.Contains(member.BackingFieldName))
             {
-                this.diagnostics.ReportMemberWithNameAlreadyExists(member.BackingMember, member.Name);
+                this.diagnostics.ReportMemberWithNameAlreadyExists(member.Property, member.BackingFieldName);
                 typeAnalysis.Members.RemoveAt(i);
             }
         }
 
-        foreach (var collision in typeAnalysis.Members.GroupBy(x => x.Name).Where(x => x.Count() > 1))
+        foreach (var collision in typeAnalysis.Members.GroupBy(x => x.BackingFieldName).Where(x => x.Count() > 1))
         {
             var members = collision.ToList();
             for (int i = 0; i < members.Count; i++)
             {
                 var collidingMember = members[i == 0 ? 1 : 0];
-                this.diagnostics.ReportAnotherMemberHasSameGeneratedName(members[i].BackingMember, collidingMember.BackingMember, members[i].Name);
+                this.diagnostics.ReportAnotherMemberHasSameGeneratedName(members[i].Property, collidingMember.Property, members[i].BackingFieldName);
                 typeAnalysis.Members.Remove(members[i]);
             }
         }
@@ -455,86 +417,6 @@ public partial class Analyser
     private AttributeData? GetNotifyAttribute(IEnumerable<AttributeData> attributes)
     {
         return attributes.SingleOrDefault(x => x.AttributeClass?.Name == "NotifyAttribute");
-    }
-
-    private List<string>? GetAttributesForGeneratedProperty(IEnumerable<AttributeData> attributes)
-    {
-        List<string>? result = null;
-        var filteredAttributes = attributes.Where(x => x.AttributeClass?.Name == "PropertyAttributeAttribute");
-        foreach (var attribute in filteredAttributes)
-        {
-            if (attribute.ConstructorArguments.ElementAtOrDefault(0).Value is string str)
-            {
-                // If they haven't put [ and ] around it, be nice
-                if (!str.StartsWith("[") && !str.EndsWith("]"))
-                {
-                    str = "[" + str + "]";
-                }
-                result ??= new();
-                result.Add(str);
-            }
-        }
-        return result;
-    }
-
-    private static string[]? ParseDocComment(string? xml)
-    {
-        string? comment = ParseDocCommentXml(xml);
-        if (comment == null)
-        {
-            return null;
-        }
-
-        string[] lines = comment.Split('\n');
-        if (lines.Length == 0)
-        {
-            return null;
-        }
-
-        string leadingWhitespace = "";
-        for (int i = 0; i < lines[0].Length; i++)
-        {
-            if (lines[0][i] != ' ')
-            {
-                leadingWhitespace = lines[0].Substring(0, i);
-                break;
-            }
-        }
-
-        for (int i = 0; i < lines.Length; i++)
-        {
-            if (lines[i].StartsWith(leadingWhitespace))
-            {
-                lines[i] = lines[i].Substring(leadingWhitespace.Length);
-            }
-        }
-
-        return lines;
-    }
-
-    private static string? ParseDocCommentXml(string? xml)
-    {
-        // XML doc comments come wrapped in <member ...> ... </member>
-        // Remove this root, and strip leading whitespace from the children.
-        // Alternatively, if the doc XML was invalid, 'xml' just contains a top-level comment
-
-        if (string.IsNullOrWhiteSpace(xml))
-            return null;
-
-        using (var sr = new StringReader(xml))
-        using (var reader = XmlReader.Create(sr))
-        {
-            reader.Read();
-            if (reader.NodeType == XmlNodeType.Element && reader.Name == "member")
-            {
-                reader.MoveToContent();
-                return reader.ReadInnerXml().Trim('\n');
-            }
-            else
-            {
-                return null;
-            }
-        }
     }
 
     private (OnPropertyNameChangedInfo? onPropertyNameChanged, OnPropertyNameChangedInfo? onPropertyNameChanging) FindOnPropertyNameChangedMethod(
