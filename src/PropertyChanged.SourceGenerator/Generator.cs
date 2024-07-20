@@ -67,7 +67,7 @@ public class Generator
         }
         if (typeAnalysis.INotifyPropertyChanging.RequiresInterface)
         {
-            interfaces.Add("global::System.CompoenntModel.INotifyPropertyChanging");
+            interfaces.Add("global::System.ComponentModel.INotifyPropertyChanging");
         }
         if (interfaces.Count > 0)
         {
