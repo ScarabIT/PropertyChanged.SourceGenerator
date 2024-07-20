@@ -166,7 +166,7 @@ public static class DiagnosticVerifier
             }
             else
             {
-                Assert.True(location.IsInSource,
+                Assert.That(location.IsInSource, Is.True,
                     $"Test base does not currently handle diagnostics in metadata locations. Diagnostic in metadata: {diagnostics[i]}\r\n");
 
                 squiggledText = GetSquiggledText(diagnostics[i]);

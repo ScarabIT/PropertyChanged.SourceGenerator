@@ -68,7 +68,7 @@ public abstract class TestsBase
     {
         var compilation = this.CreateCompilation(input, NullableContextOptions.Disable, addAttributes: true);
         var type = compilation.GetTypeByMetadataName(name);
-        Assert.NotNull(type);
+        Assert.That(type, Is.Not.Null);
 
         var diagnostics = new DiagnosticReporter();
         var analyser = new Analyser(diagnostics, compilation, compilation.Options.NullableContextOptions, new ConfigurationParser(new TestOptionsProvider()));
@@ -90,7 +90,7 @@ public abstract class TestsBase
 
         DiagnosticVerifier.VerifyDiagnostics(diagnostics.GetDiagnostics(), Array.Empty<DiagnosticResult>(), 1);
 
-        Assert.AreEqual(1, typeAnalyses.Count);
+        Assert.Equals(1, typeAnalyses.Count);
         return typeAnalyses[0];
     }
 
@@ -120,7 +120,7 @@ public abstract class TestsBase
             foreach (var expectedFile in expectation.ExpectedFiles)
             {
                 var generatedTree = runResult.GeneratedTrees.FirstOrDefault(x => Path.GetFileNameWithoutExtension(x.FilePath) == expectedFile.Name + ".g");
-                Assert.NotNull(generatedTree, $"No output file with name {expectedFile.Name}");
+                Assert.That(generatedTree, Is.Not.Null, $"No output file with name {expectedFile.Name}");
 
                 var rootSyntaxNode = generatedTree!.GetRoot();
                 foreach (var rewriter in expectedFile.Rewriters)
@@ -136,7 +136,7 @@ public abstract class TestsBase
 
                 if (expectedFile.Source != null)
                 {
-                    Assert.AreEqual(expectedFile.Source.Trim().Replace("\r\n", "\n"), actual);
+                    Assert.That(actual, Is.EqualTo(expectedFile.Source.Trim().Replace("\r\n", "\n")));
                 }
                 else
                 {
@@ -156,7 +156,7 @@ public abstract class TestsBase
             foreach (string expectedMissingFile in expectation.ExpectedMissingFiles)
             {
                 var generatedTree = runResult.GeneratedTrees.FirstOrDefault(x => Path.GetFileNameWithoutExtension(x.FilePath) == expectedMissingFile);
-                Assert.Null(generatedTree, $"Unexpected file with name {expectedMissingFile}");
+                Assert.That(generatedTree, Is.Not.Null, $"Unexpected file with name {expectedMissingFile}");
             }
         }
 
@@ -171,7 +171,7 @@ public abstract class TestsBase
             // CS0067: Event isn't used
             compilationDiagnostics = compilationDiagnostics.Where(x => x.Id is not ("CS0169" or "CS0067"));
         }
-        Assert.IsEmpty(compilationDiagnostics, "Unexpected diagnostics:\r\n\r\n" + string.Join("\r\n", compilationDiagnostics.Select(x => x.ToString())));
+        Assert.That(compilationDiagnostics, Is.Not.Empty, "Unexpected diagnostics:\r\n\r\n" + string.Join("\r\n", compilationDiagnostics.Select(x => x.ToString())));
     }
 
     protected static DiagnosticResult Diagnostic(string code, string squiggledText)
@@ -183,7 +183,7 @@ public abstract class TestsBase
     {
         var analysis = this.Analyse(input, type);
         var member = analysis.Members.FirstOrDefault(x => x.Name == memberName);
-        Assert.NotNull(member);
+        Assert.That(member, Is.Not.Null);
         Assert.That(member!.AlsoNotify.Select(x => x.Name), Has.Member(propertyName));
     }
 
@@ -200,9 +200,9 @@ public abstract class TestsBase
         var member = analysis.Members.FirstOrDefault(x => x.Name == memberName);
         if (member != null)
         {
-            Assert.IsEmpty(member!.AlsoNotify);
+            Assert.That(member!.AlsoNotify, Is.Empty);
         }
-        Assert.IsEmpty(analysis.BaseDependsOn.Where(x => x.notifyProperty.Name == memberName));
+        Assert.That(analysis.BaseDependsOn.Where(x => x.notifyProperty.Name == memberName), Is.Empty);
     }
 }
 
