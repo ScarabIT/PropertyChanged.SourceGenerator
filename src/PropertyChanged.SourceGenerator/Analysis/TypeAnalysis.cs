@@ -50,7 +50,6 @@ public class TypeAnalysisBuilder
             INotifyPropertyChanged = this.INotifyPropertyChanged ?? throw new ArgumentNullException(nameof(this.INotifyPropertyChanged)),
             INotifyPropertyChanging = this.INotifyPropertyChanging ?? throw new ArgumentNullException(nameof(this.INotifyPropertyChanging)),
             IsChangedPropertyName = this.IsChangedPropertyName,
-            IsChangedSetterIsPrivate = this.IsChangedSetterIsPrivate,
             Members = new ReadOnlyEquatableList<MemberAnalysis>(this.Members.Select(x => x.Build()).ToList()),
             NullableContext = this.NullableContext,
             BaseDependsOn = this.baseDependsOn == null
@@ -71,7 +70,6 @@ public record TypeAnalysis
     public required InterfaceAnalysis INotifyPropertyChanging { get; init; }
 
     public required string? IsChangedPropertyName { get; init; }
-    public required bool IsChangedSetterIsPrivate { get; init; }
     public required ReadOnlyEquatableList<MemberAnalysis> Members { get; init; }
     public required NullableContextOptions NullableContext { get; init; }
 

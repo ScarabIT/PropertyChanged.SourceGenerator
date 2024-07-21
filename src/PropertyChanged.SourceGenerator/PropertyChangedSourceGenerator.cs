@@ -33,13 +33,13 @@ public class PropertyChangedSourceGenerator : IIncrementalGenerator
                 {
                     AttributeLists.Count: > 0,
                 },
-                (ctx, token) => (member: ctx.TargetSymbol, attributes: ctx.Attributes, compilation: ctx.SemanticModel.Compilation))
-            .WithComparer(AlwaysFalseEqualityComparer<(ISymbol member, ImmutableArray<AttributeData> attributes, Compilation compilation)>.Instance)
+                (ctx, token) => (member: (IPropertySymbol)ctx.TargetSymbol, attributes: ctx.Attributes, compilation: ctx.SemanticModel.Compilation))
+            .WithComparer(AlwaysFalseEqualityComparer<(IPropertySymbol member, ImmutableArray<AttributeData> attributes, Compilation compilation)>.Instance)
             .WithTrackingName($"attributeContainingTypeSources_{attribute}");
         }).ToList();
 
         var typesSource = Collect(attributeContainingTypeSources)
-            .WithComparer(AlwaysFalseEqualityComparer<ImmutableArray<(ISymbol member, ImmutableArray<AttributeData> attributes, Compilation compilation)>>.Instance)
+            .WithComparer(AlwaysFalseEqualityComparer<ImmutableArray<(IPropertySymbol member, ImmutableArray<AttributeData> attributes, Compilation compilation)>>.Instance)
             .WithTrackingName("typesSource");
 
         var nullableContextAndConfigurationParser = context.CompilationProvider.Select((compilation, _) => compilation.Options.NullableContextOptions)

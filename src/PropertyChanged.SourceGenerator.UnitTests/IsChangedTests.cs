@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis;
 using NUnit.Framework;
 using PropertyChanged.SourceGenerator.UnitTests.Framework;
 
@@ -11,6 +13,11 @@ namespace PropertyChanged.SourceGenerator.UnitTests;
 [TestFixture]
 public class IsChangedTests : TestsBase
 {
+    private static readonly CSharpSyntaxVisitor<SyntaxNode?>[] rewriters = new CSharpSyntaxVisitor<SyntaxNode?>[]
+    {
+        RemoveInpcMembersRewriter.All, RemoveBackingFieldsRewriter.Instance
+    };
+
     [Test]
     public void GeneratesIsChangedToProperty()
     {
@@ -20,11 +27,11 @@ public class IsChangedTests : TestsBase
                 [IsChanged]
                 public bool IsChanged { get; set; }
                 [Notify]
-                private string _foo;
+                public partial string Foo { get; set; }
             }
             """;
 
-        this.AssertThat(input, It.HasFile("SomeViewModel", RemoveInpcMembersRewriter.All));
+        this.AssertThat(input, It.HasFile("SomeViewModel", rewriters));
     }
 
     [Test]
@@ -34,13 +41,13 @@ public class IsChangedTests : TestsBase
             public partial class SomeViewModel
             {
                 [Notify, IsChanged]
-                private bool _isChanged;
+                public partial bool IsChanged { get; set; }
                 [Notify]
-                private string _foo;
+                public partial string Foo { get; set; }
             }
             """;
 
-        this.AssertThat(input, It.HasFile("SomeViewModel", RemoveInpcMembersRewriter.All));
+        this.AssertThat(input, It.HasFile("SomeViewModel", rewriters));
     }
 
     [Test]
@@ -53,11 +60,11 @@ public class IsChangedTests : TestsBase
             }
             public partial class Derived : Base
             {
-                [Notify] private string _foo;
+                [Notify] public partial string Foo { get; set; }
             }
             """;
 
-        this.AssertThat(input, It.HasFile("Derived", RemoveInpcMembersRewriter.All));
+        this.AssertThat(input, It.HasFile("Derived", rewriters));
     }
 
     [Test]
@@ -123,7 +130,7 @@ public class IsChangedTests : TestsBase
                 [IsChanged]
                 public bool IsChanged { get; }
                 [Notify]
-                private int _bar;
+                public partial int Bar { get; set; }
             }
             """;
 
@@ -131,6 +138,26 @@ public class IsChangedTests : TestsBase
             // (4,17): Warning INPC016: [IsChanged] property 'IsChanged' does not have a setter. Skipping
             // IsChanged
             Diagnostic("INPC016", @"IsChanged").WithLocation(4, 17)
+        ));
+    }
+
+    [Test]
+    public void RaisesIfPartialIsChangedHasNoSetter()
+    {
+        string input = """
+            public partial class SomeViewModel
+            {
+                [IsChanged]
+                public partial bool IsChanged { get; }
+                [Notify]
+                public partial int Bar { get; set; }
+            }
+            """;
+
+        this.AssertThat(input, It.HasDiagnostics(
+            // (4,25): Warning INPC016: [IsChanged] property 'IsChanged' does not have a setter. Skipping
+            // IsChanged
+            Diagnostic("INPC016", @"IsChanged").WithLocation(4, 25)
         ));
     }
 
@@ -144,11 +171,11 @@ public class IsChangedTests : TestsBase
             }
             public partial class Derived : Base
             {
-                [Notify] private int? _foo;
+                [Notify] public partial int? Foo { get; set; }
             }
             """;
 
-        this.AssertThat(input, It.HasFile("Derived", RemoveInpcMembersRewriter.All));
+        this.AssertThat(input, It.HasFile("Derived", rewriters));
     }
 
     [Test]
@@ -157,14 +184,14 @@ public class IsChangedTests : TestsBase
         string input = """
             public partial class Base
             {
-                [IsChanged, Notify(Setter.Private)] private bool _isChanged;
+                [IsChanged, Notify] public partial bool IsChanged { get; private set; }
             }
             public partial class Derived : Base
             {
-                [Notify] private int? _foo;
+                [Notify] public partial int? Foo { get; set; }
             }
             """;
 
-        this.AssertThat(input, It.HasFile("Derived", RemoveInpcMembersRewriter.All));
+        this.AssertThat(input, It.HasFile("Derived", rewriters));
     }
 }

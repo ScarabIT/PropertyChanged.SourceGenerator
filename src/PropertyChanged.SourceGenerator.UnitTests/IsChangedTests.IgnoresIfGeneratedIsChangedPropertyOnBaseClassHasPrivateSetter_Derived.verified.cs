@@ -1,13 +1,13 @@
 ﻿partial class Derived
 {
-    public int? Foo
+    public partial int? Foo
     {
-        get => this._foo;
+        get => this.__foo;
         set
         {
-            if (!global::System.Collections.Generic.EqualityComparer<int?>.Default.Equals(value, this._foo))
+            if (!global::System.Collections.Generic.EqualityComparer<int?>.Default.Equals(value, this.__foo))
             {
-                this._foo = value;
+                this.__foo = value;
                 this.OnPropertyChanged(global::PropertyChanged.SourceGenerator.Internal.EventArgsCache.PropertyChanged_Foo);
             }
         }

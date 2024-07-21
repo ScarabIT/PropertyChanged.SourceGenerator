@@ -147,7 +147,7 @@ public partial class Analyser
 
     private void AnalyseInner(
         TypeAnalysisBuilder typeAnalysis,
-        IReadOnlyDictionary<ISymbol, List<AttributeData>> members,
+        IReadOnlyDictionary<IPropertySymbol, List<AttributeData>> members,
         List<TypeAnalysisBuilder> baseTypeAnalyses,
         CancellationToken token)
     {
@@ -166,7 +166,7 @@ public partial class Analyser
         token.ThrowIfCancellationRequested();
 
         (typeAnalysis.INotifyPropertyChanged, typeAnalysis.INotifyPropertyChanging) = InterfaceAnalyser.PopulateRaiseMethodNameIfEmpty(typeAnalysis.INotifyPropertyChanged, typeAnalysis.INotifyPropertyChanging, config);
-        this.ResoveInheritedIsChanged(typeAnalysis, baseTypeAnalyses);
+        this.ResolveInheritedIsChanged(typeAnalysis, baseTypeAnalyses);
 
         foreach (var kvp in members)
         {

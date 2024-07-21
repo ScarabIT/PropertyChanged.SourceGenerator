@@ -146,7 +146,7 @@ public class DiagnosticReporter
         "INPC014",
         "Multiple [IsChanged] proeprties",
         "Found multiple [IsChanged] properties, but only one is allowed. Ignoring this one, and using '{0}'");
-    public void ReportMultipleIsChangedProperties(string usedPropertyName, AttributeData attribute, ISymbol member)
+    public void ReportMultipleIsChangedProperties(string usedPropertyName, AttributeData attribute, IPropertySymbol member)
     {
         this.AddDiagnostic(multipleIsChangedProperties, AttributeLocations(attribute, member), usedPropertyName);
     }
@@ -156,7 +156,7 @@ public class DiagnosticReporter
         "[IsChanged] property does not return bool",
         "[IsChanged] property '{0}' does not return a bool. Skipping");
 
-    public void ReportNonBooleanIsChangedProperty(ISymbol member)
+    public void ReportNonBooleanIsChangedProperty(IPropertySymbol member)
     {
         this.AddDiagnostic(nonBooleanIsChangedProperty, member.Locations, member.Name);
     }
@@ -166,7 +166,7 @@ public class DiagnosticReporter
         "[IsChanged] property does not have a setter",
         "[IsChanged] property '{0}' does not have a setter. Skipping");
 
-    public void ReportIsChangedDoesNotHaveSetter(ISymbol member)
+    public void ReportIsChangedDoesNotHaveSetter(IPropertySymbol member)
     {
         this.AddDiagnostic(isChangedDoesNotHaveSetter, member.Locations, member.Name);
     }

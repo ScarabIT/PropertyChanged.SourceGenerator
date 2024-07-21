@@ -8,7 +8,7 @@ namespace PropertyChanged.SourceGenerator.Analysis;
 
 public partial class Analyser
 {
-    public void ResoveInheritedIsChanged(TypeAnalysisBuilder typeAnalysis, List<TypeAnalysisBuilder> baseTypeAnalyses)
+    public void ResolveInheritedIsChanged(TypeAnalysisBuilder typeAnalysis, List<TypeAnalysisBuilder> baseTypeAnalyses)
     {
         // Copy the parent's, if it's accessible
         if (baseTypeAnalyses.FirstOrDefault() is { IsChangedSetterIsPrivate: false } directParent)
@@ -20,7 +20,7 @@ public partial class Analyser
 
     public void ResolveIsChangedMember(
         TypeAnalysisBuilder typeAnalysis,
-        ISymbol member,
+        IPropertySymbol member,
         IReadOnlyList<AttributeData> attributes,
         MemberAnalysisBuilder? memberAnalysis)
     {
@@ -38,7 +38,7 @@ public partial class Analyser
             {
                 this.diagnostics.ReportNonBooleanIsChangedProperty(member);
             }
-            else if (memberAnalysis == null && member is IPropertySymbol { SetMethod: null })
+            else if (memberAnalysis == null && member.SetMethod == null)
             {
                 this.diagnostics.ReportIsChangedDoesNotHaveSetter(member);
             }
@@ -47,15 +47,13 @@ public partial class Analyser
                 // If it's got [Notify] on it, use the generated property name
                 if (memberAnalysis != null)
                 {
-                    typeAnalysis.IsChangedPropertyName = memberAnalysis.BackingFieldName;
-                    // TODO
-                    //typeAnalysis.IsChangedSetterIsPrivate = memberAnalysis.SetterAccessibility == Accessibility.Private;
+                    typeAnalysis.IsChangedPropertyName = memberAnalysis.Property.Name;
                 }
                 else
                 {
                     typeAnalysis.IsChangedPropertyName = member.Name;
-                    typeAnalysis.IsChangedSetterIsPrivate = member is IPropertySymbol { SetMethod.DeclaredAccessibility: Accessibility.Private };
                 }
+                typeAnalysis.IsChangedSetterIsPrivate = member.SetMethod.DeclaredAccessibility == Accessibility.Private;
             }
         }
     }

@@ -14,7 +14,7 @@ public partial class Analyser
 {
     private static readonly ImmutableHashSet<IPropertySymbol> emptyPropertyHashSet = ImmutableHashSet<IPropertySymbol>.Empty.WithComparer(SymbolEqualityComparer.Default);
 
-    private void ResolveDependsOn(TypeAnalysisBuilder typeAnalysis, IReadOnlyDictionary<ISymbol, List<AttributeData>> members, Configuration config)
+    private void ResolveDependsOn(TypeAnalysisBuilder typeAnalysis, IReadOnlyDictionary<IPropertySymbol, List<AttributeData>> members, Configuration config)
     {
         var lookups = new TypeAnalysisLookups(typeAnalysis);
         foreach (var member in typeAnalysis.TypeSymbol.GetMembers().OfType<IPropertySymbol>().Where(x => !x.IsImplicitlyDeclared))

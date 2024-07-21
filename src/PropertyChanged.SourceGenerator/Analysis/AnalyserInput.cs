@@ -9,14 +9,14 @@ public readonly struct AnalyserInput : IEquatable<AnalyserInput>
 {
     public INamedTypeSymbol TypeSymbol { get; }
     // Member -> Attributes
-    public Dictionary<ISymbol, List<AttributeData>> Attributes { get; } = new(SymbolEqualityComparer.Default);
+    public Dictionary<IPropertySymbol, List<AttributeData>> Attributes { get; } = new(SymbolEqualityComparer.Default);
 
     public AnalyserInput(INamedTypeSymbol typeSymbol)
     {
         this.TypeSymbol = typeSymbol.OriginalDefinition;
     }
 
-    public void Update(ISymbol member, ImmutableArray<AttributeData> attributes)
+    public void Update(IPropertySymbol member, ImmutableArray<AttributeData> attributes)
     {
         if (!this.Attributes.TryGetValue(member, out var existingAttributes))
         {
