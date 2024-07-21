@@ -18,7 +18,7 @@ public class TypeAnalysisLookups
 
     public bool TryGet(string name, [NotNullWhen(true)] out MemberAnalysisBuilder? memberAnalysis)
     {
-        this.nameLookup ??= this.typeAnalysis.Members.ToDictionary(x => x.BackingFieldName, x => x, StringComparer.Ordinal);
+        this.nameLookup ??= this.typeAnalysis.Members.ToDictionary(x => x.Property.Name, x => x, StringComparer.Ordinal);
         return this.nameLookup.TryGetValue(name, out memberAnalysis);
     }
 

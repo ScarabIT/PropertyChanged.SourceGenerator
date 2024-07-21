@@ -271,8 +271,8 @@ public partial class Analyser
             Attributes = attributes,
             GetterAccessibility = property.GetMethod.DeclaredAccessibility == property.DeclaredAccessibility ? null : property.GetMethod.DeclaredAccessibility,
             SetterAccessibility = property.SetMethod.DeclaredAccessibility == property.DeclaredAccessibility ? null : property.SetMethod.DeclaredAccessibility,
-            OnPropertyNameChanged = this.propertyChangedInterfaceAnalyser!.FindOnPropertyNameChangedMethod(property.ContainingType, name, property.Type, property.ContainingType),
-            OnPropertyNameChanging = this.propertyChangingInterfaceAnalyser!.FindOnPropertyNameChangedMethod(property.ContainingType, name, property.Type, property.ContainingType),
+            OnPropertyNameChanged = this.propertyChangedInterfaceAnalyser!.FindOnPropertyNameChangedMethod(property.ContainingType, property.Name, property.Type, property.ContainingType),
+            OnPropertyNameChanging = this.propertyChangingInterfaceAnalyser!.FindOnPropertyNameChangedMethod(property.ContainingType, property.Name, property.Type, property.ContainingType),
         };
 
         if (property.Type.IsReferenceType)

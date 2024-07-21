@@ -23,4 +23,18 @@ public class AdditionalPropertyGenerationTests : TestsBase
 
         this.AssertThat(input, It.HasFile("SomeViewModel", StandardRewriters));
     }
+
+    [Test]
+    public void AddsVirtual2()
+    {
+        string input = """
+            public partial class SomeViewModel
+            {
+                [Notify]
+                public virtual partial int Foo { get; private set; }
+            }
+            """;
+
+        this.AssertThat(input, It.HasFile("SomeViewModel"));
+    }
 }

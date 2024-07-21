@@ -1,6 +1,6 @@
 ﻿partial class Derived : global::System.ComponentModel.INotifyPropertyChanged
 {
-    public int Foo { get; set; }
+    public partial int Foo { get; set; }
     protected override void OnPropertyChanged(global::System.ComponentModel.PropertyChangedEventArgs eventArgs, object oldValue, object newValue)
     {
         this.OnAnyPropertyChanged(eventArgs.PropertyName, oldValue, newValue);

@@ -25,7 +25,7 @@ public class NullableTypeTests : TestsBase
             public partial class SomeViewModel
             {
                 [Notify]
-                private string _foo = "";
+                public partial string Foo { get; set; } = "";
             }
             """;
 
@@ -43,7 +43,7 @@ public class NullableTypeTests : TestsBase
             public partial class SomeViewModel
             {
                 [Notify]
-                private string _foo = "";
+                public partial string Foo { get; set; } = "";
             }
             """;
 
@@ -61,15 +61,16 @@ public class NullableTypeTests : TestsBase
             public partial class SomeViewModel
             {
                 [Notify]
+                public partial string? Nullable { get; set; }
                 private string? _nullable;
                 [Notify]
-                private string _notNullable = "";
+                public partial string NotNullable { get; set; } = "";
             #nullable disable
                 [Notify]
-                private string _oblivious;
+                public partial string Oblivious { get; set; }
             #nullable restore
                 [Notify]
-                private int? _nullableValue;
+                public partial int? NullableValue { get; set; }
             }
             """;
 
@@ -80,22 +81,22 @@ public class NullableTypeTests : TestsBase
     }
 
     [Test]
-    public void GeneratesNullablePropertiesIfInFilenNullableContext()
+    public void GeneratesNullablePropertiesIfInFileNullableContext()
     {
         string input = """
             #nullable enable
             public partial class SomeViewModel
             {
                 [Notify]
-                private string? _nullable;
+                public partial string? Nullable { get; set; }
                 [Notify]
-                private string _notNullable = "";
+                public partial string NotNullable { get; set; } = "";
             #nullable disable
                 [Notify]
-                private string _oblivious;
+                public partial string Oblivious { get; set; }
             #nullable restore
                 [Notify]
-                private int? _nullableValue;
+                public partial int? NullableValue { get; set; }
             }
             """;
 

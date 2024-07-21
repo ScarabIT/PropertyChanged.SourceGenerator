@@ -15,7 +15,7 @@ public class OnAnyPropertyChangedTests : TestsBase
 {
     private static readonly CSharpSyntaxVisitor<SyntaxNode?>[] rewriters = new CSharpSyntaxVisitor<SyntaxNode?>[]
     {
-        RemovePropertiesRewriter.Instance, RemoveDocumentationRewriter.Instance,
+        RemovePropertiesRewriter.Instance, RemoveDocumentationRewriter.Instance, RemoveBackingFieldsRewriter.Instance
     };
 
     [Test]
@@ -24,7 +24,7 @@ public class OnAnyPropertyChangedTests : TestsBase
         string input = """
             public partial class SomeViewModel
             {
-                [Notify] string _foo;
+                [Notify] public partial string Foo { get; set; }
                 private void OnAnyPropertyChanged(string propertyName) { }
             }
             """;
@@ -38,7 +38,7 @@ public class OnAnyPropertyChangedTests : TestsBase
         string input = """
             public partial class SomeViewModel
             {
-                [Notify] string _foo;
+                [Notify] public partial string Foo { get; set; }
                 private void OnAnyPropertyChanged(string propertyName, object oldValue, object newValue) { }
             }
             """;
@@ -58,7 +58,7 @@ public class OnAnyPropertyChangedTests : TestsBase
             }
             public partial class Derived : Base
             {
-                [Notify] private int _foo;
+                [Notify] public partial int Foo { get; set; }
                 private void OnAnyPropertyChanged(string name) { }
             }
             """;
@@ -78,7 +78,7 @@ public class OnAnyPropertyChangedTests : TestsBase
             }
             public partial class Derived : Base
             {
-                [Notify] private int _foo;
+                [Notify] public partial int Foo { get; set; }
                 private void OnAnyPropertyChanged(string name) { }
             }
             """;
@@ -98,7 +98,7 @@ public class OnAnyPropertyChangedTests : TestsBase
             }
             public partial class Derived : Base
             {
-                [Notify] private int _foo;
+                [Notify] public partial int Foo { get; set; }
                 private void OnAnyPropertyChanged(string name, object o, object n) { }
             }
             """;
@@ -122,7 +122,7 @@ public class OnAnyPropertyChangedTests : TestsBase
             }
             public partial class Derived : Base
             {
-                [Notify] private int _foo;
+                [Notify] public partial int Foo { get; set; }
                 private void OnAnyPropertyChanged(string name, object o, object n) { }
             }
             """;
@@ -136,12 +136,12 @@ public class OnAnyPropertyChangedTests : TestsBase
         string input = """
             public partial class Base
             {
-                [Notify] private string _foo;
+                [Notify] public partial string Foo { get; set; }
                 protected void OnAnyPropertyChanged(string propertyName) { }
             }
             public partial class Derived : Base
             {
-                [Notify] private string _bar;
+                [Notify] public partial string Bar { get; set; };
                 protected new void OnAnyPropertyChanged(string propertyName) { }
             }
             """;
@@ -155,12 +155,12 @@ public class OnAnyPropertyChangedTests : TestsBase
         string input = """
             public partial class Base
             {
-                [Notify] private string _foo;
+                [Notify] public partial string Foo { get; set; }
                 protected virtual void OnAnyPropertyChanged(string propertyName) { }
             }
             public partial class Derived : Base
             {
-                [Notify] private string _bar;
+                [Notify] public partial string Bar { get; set; }
                 protected override void OnAnyPropertyChanged(string propertyName) { }
             }
             """;
@@ -175,7 +175,7 @@ public class OnAnyPropertyChangedTests : TestsBase
         string input = """
             public partial class SomeViewModel
             {
-                [Notify] private int _foo;
+                [Notify] public partial int Foo { get; set; }
                 private void OnAnyPropertyChanged() { }
             }
             """;
@@ -198,7 +198,7 @@ public class OnAnyPropertyChangedTests : TestsBase
             }
             public partial class Derived : Base
             {
-                [Notify] private int _foo;
+                [Notify] public partial int Foo { get; set; }
                 private void OnAnyPropertyChanged(string name) { }
             }
             """;

@@ -15,7 +15,7 @@ public class OnPropertyNameChangingTests : TestsBase
 {
     private static readonly CSharpSyntaxVisitor<SyntaxNode?>[] rewriters = new CSharpSyntaxVisitor<SyntaxNode?>[]
     {
-        RemoveInpcMembersRewriter.All,
+        RemoveInpcMembersRewriter.All, RemoveBackingFieldsRewriter.Instance,
     };
 
     [Test]
@@ -26,7 +26,7 @@ public class OnPropertyNameChangingTests : TestsBase
             public partial class SomeViewModel : INotifyPropertyChanging
             {
                 [Notify]
-                private string _foo;
+                public partial string Foo { get; set; }
                 public void OnFooChanging() { }
             }
             """;
@@ -42,7 +42,7 @@ public class OnPropertyNameChangingTests : TestsBase
             public partial class SomeViewModel : INotifyPropertyChanging
             {
                 [Notify]
-                private string _foo;
+                public partial string Foo { get; set; }
                 public void OnFooChanging(string oldValue) { }
             }
             """;
@@ -58,7 +58,7 @@ public class OnPropertyNameChangingTests : TestsBase
             public partial class SomeViewModel : INotifyPropertyChanging
             {
                 [Notify]
-                private string _foo;
+                public partial string Foo { get; set; }
                 public void OnFooChanging(object oldValue) { }
             }
             """;
@@ -74,7 +74,7 @@ public class OnPropertyNameChangingTests : TestsBase
             public partial class SomeViewModel : INotifyPropertyChanging
             {
                 [Notify, AlsoNotify("Bar")]
-                private int _foo;
+                public partial int Foo { get; set; }
                 public int Bar { get; }
                 private void OnBarChanging() { }
             }
@@ -91,7 +91,7 @@ public class OnPropertyNameChangingTests : TestsBase
             public partial class SomeViewModel : INotifyPropertyChanging
             {
                 [Notify, AlsoNotify("Bar")]
-                private int _foo;
+                public partial int Foo { get; set; }
                 public int Bar { get; }
                 private void OnBarChanging(int oldValue) { }
             }
@@ -108,13 +108,13 @@ public class OnPropertyNameChangingTests : TestsBase
             public partial class Base : INotifyPropertyChanging
             {
                 [Notify]
-                private int _bar;
+                public partial int Bar { get; set; }
                 protected void OnBarChanging(int oldValue) { }
             }
             public partial class Derived : Base
             {
                 [Notify, AlsoNotify("Bar")]
-                private int _foo;
+                public partial int Foo { get; set; }
             }
             """;
 
@@ -129,12 +129,12 @@ public class OnPropertyNameChangingTests : TestsBase
             public partial class Base : INotifyPropertyChanging
             {
                 [Notify]
-                private int _bar;
+                public partial int Bar { get; set; }
             }
             public partial class Derived : Base
             {
                 [Notify, AlsoNotify("Bar")]
-                private int _foo;
+                public partial int Foo { get; set; }
                 private void OnBarChanging(int oldValue) { }
             }
             """;
@@ -155,7 +155,7 @@ public class OnPropertyNameChangingTests : TestsBase
             public partial class Derived : Base, INotifyPropertyChanging
             {
                 [Notify, AlsoNotify("Bar")]
-                private int _foo;
+                public partial int Foo { get; set; }
             }
             """;
 
@@ -175,7 +175,7 @@ public class OnPropertyNameChangingTests : TestsBase
             public partial class SomeViewModel : INotifyPropertyChanging
             {
                 [Notify]
-                private int _foo;
+                public partial int Foo { get; set; }
                 [DependsOn("Foo")]
                 public int Bar { get; }
                 private void OnBarChanging(int oldValue) { }
@@ -193,7 +193,7 @@ public class OnPropertyNameChangingTests : TestsBase
             public partial class SomeViewModel : INotifyPropertyChanging
             {
                 [Notify]
-                private int _foo;
+                public partial int Foo { get; set; }
                 public int Bar => this.Foo + 2;
                 public string Baz => $"Test: {Bar}";
                 private void OnBarChanging(int oldValue) { }

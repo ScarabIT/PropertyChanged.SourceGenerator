@@ -1,4 +1,4 @@
 ﻿partial class Derived
 {
-    public string Bar { get; set; }
+    public partial string Bar { get; set; }
 }

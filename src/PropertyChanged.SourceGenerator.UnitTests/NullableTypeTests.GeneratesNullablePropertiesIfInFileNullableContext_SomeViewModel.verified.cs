@@ -1,6 +1,6 @@
-﻿#nullable enable
-partial class SomeViewModel
+﻿partial class SomeViewModel
 {
+    #nullable enable annotations
     private string? __nullable;
     public partial string? Nullable
     {
@@ -14,6 +14,8 @@ partial class SomeViewModel
             }
         }
     }
+    #nullable disable
+    #nullable enable annotations
     private string __notNullable;
     public partial string NotNullable
     {
@@ -41,7 +43,6 @@ partial class SomeViewModel
             }
         }
     }
-    #nullable enable
     private int? __nullableValue;
     public partial int? NullableValue
     {

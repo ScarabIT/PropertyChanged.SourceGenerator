@@ -2,7 +2,8 @@
 {
     public event global::System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
     #nullable enable annotations
-    public string Foo { get; set; }
+    private string __foo;
+    public partial string Foo { get; set; }
     #nullable disable
     protected virtual void OnPropertyChanged(global::System.ComponentModel.PropertyChangedEventArgs eventArgs)
     {
