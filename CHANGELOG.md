@@ -1,3 +1,9 @@
+v1.1.1
+------
+
+ - Fix DependsOn not working when depending on a generated property from a base type (#47)
+
+
 v1.1.0
 ------
 

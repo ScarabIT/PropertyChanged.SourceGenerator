@@ -72,26 +72,27 @@ public abstract class TestsBase
 
         var diagnostics = new DiagnosticReporter();
         var analyser = new Analyser(diagnostics, compilation, compilation.Options.NullableContextOptions, new ConfigurationParser(new TestOptionsProvider()));
-        
-        var analyserInput = new AnalyserInput(type!);
-        foreach (var member in type!.GetMembers().Where(x => !x.IsImplicitlyDeclared))
+
+        var inputs = new Dictionary<INamedTypeSymbol, AnalyserInput>(SymbolEqualityComparer.Default);
+        for (var t = type; t!.SpecialType != SpecialType.System_Object; t = t.BaseType)
         {
-            var attributes = member.GetAttributes().Where(x => x.ToString()!.StartsWith("PropertyChanged.SourceGenerator")).ToList();
-            if (attributes.Count > 0)
+            var analyserInput = new AnalyserInput(t);
+            foreach (var member in t.GetMembers().Where(x => !x.IsImplicitlyDeclared))
             {
-                analyserInput.Update(member, attributes.ToImmutableArray());
+                var attributes = member.GetAttributes().Where(x => x.ToString()!.StartsWith("PropertyChanged.SourceGenerator")).ToList();
+                if (attributes.Count > 0)
+                {
+                    analyserInput.Update(member, attributes.ToImmutableArray());
+                }
             }
+            inputs.Add(t, analyserInput);
         }
-        var inputs = new Dictionary<INamedTypeSymbol, AnalyserInput>(SymbolEqualityComparer.Default)
-        {
-            {  type!, analyserInput },
-        };
+
         var typeAnalyses = analyser.Analyse(inputs, CancellationToken.None).ToList();
 
         DiagnosticVerifier.VerifyDiagnostics(diagnostics.GetDiagnostics(), Array.Empty<DiagnosticResult>(), 1);
 
-        Assert.AreEqual(1, typeAnalyses.Count);
-        return typeAnalyses[0];
+        return typeAnalyses.Single(x => x.TypeNameForGeneratedFileName == name);
     }
 
     protected static Expectation It { get; } = new Expectation();
