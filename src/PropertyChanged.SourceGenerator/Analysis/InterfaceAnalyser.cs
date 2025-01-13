@@ -185,9 +185,9 @@ public abstract class InterfaceAnalyser
             }
             else if (isGeneratingAnyParent)
             {
-                raiseMethodType = onAnyPropertyChangedOrChangingInfo == null
-                    ? RaisePropertyChangedMethodType.None
-                    : RaisePropertyChangedMethodType.Override;
+                // We can't specify None: we might need to raise a DependsOn from a base class.
+                // The Generator will only generate this method on Override if it actually has something to put in it
+                raiseMethodType = RaisePropertyChangedMethodType.Override;
             }
             else
             {

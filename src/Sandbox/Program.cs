@@ -9,13 +9,21 @@ public class Program
     public static void Main(string[] args)
     {
         Console.WriteLine("Hello World!");
-        var vm = new SomeViewModel();
-        vm.propertyfoo2 = 3;
+        var vm = new Derived();
     }
 }
 
-public partial class SomeViewModel : INotifyPropertyChanging
+internal partial class Base
 {
-    [Notify] private int _foo2;
+    [Notify]
+    private bool _selected;
+}
 
+internal partial class Derived : Base
+{
+    // [DependsOn(nameof(Selected))]
+    public string Test => Selected ? "foo" : "bar";
+
+    [Notify]
+    private int _baz;
 }

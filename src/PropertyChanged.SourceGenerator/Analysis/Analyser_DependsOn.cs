@@ -14,9 +14,14 @@ public partial class Analyser
 {
     private static readonly ImmutableHashSet<IPropertySymbol> emptyPropertyHashSet = ImmutableHashSet<IPropertySymbol>.Empty.WithComparer(SymbolEqualityComparer.Default);
 
-    private void ResolveDependsOn(TypeAnalysisBuilder typeAnalysis, IReadOnlyDictionary<ISymbol, List<AttributeData>> members, Configuration config)
+    private void ResolveDependsOn(
+        TypeAnalysisBuilder typeAnalysis,
+        List<TypeAnalysisBuilder> baseTypeAnalyses,
+        IReadOnlyDictionary<ISymbol,
+        List<AttributeData>> members,
+        Configuration config)
     {
-        var lookups = new TypeAnalysisLookups(typeAnalysis);
+        var lookups = new TypeAnalysisLookups(typeAnalysis, baseTypeAnalyses);
         foreach (var member in typeAnalysis.TypeSymbol.GetMembers().Where(x => !x.IsImplicitlyDeclared && x is IFieldSymbol or IPropertySymbol))
         {
             // Does it have a DependsOn attribute?
@@ -47,7 +52,7 @@ public partial class Analyser
 
                 AlsoNotifyMember? alsoNotifyMember = null;
                 // If we're generating this property, make sure we use the generated name...
-                if (lookups.TryGet(member, out var memberAnalysis))
+                if (lookups.TryGetThisType(member, out var memberAnalysis))
                 {
                     alsoNotifyMember = AlsoNotifyMember.FromMemberAnalysis(memberAnalysis);
                 }
@@ -64,10 +69,15 @@ public partial class Analyser
 
                 if (alsoNotifyMember != null)
                 {
-                    if (lookups.TryGet(dependsOn!, out var dependsOnMember))
+                    if (lookups.TryGetThisType(dependsOn!, out var dependsOnMember))
                     {
                         // Is this the name of a property we're generating on this type?
                         dependsOnMember.AddAlsoNotify(alsoNotifyMember.Value);
+                    }
+                    else if (lookups.TryGetBaseType(dependsOn!, out _))
+                    {
+                        // Or on a base type?
+                        typeAnalysis.AddDependsOn(dependsOn!, alsoNotifyMember.Value);
                     }
                     else
                     {
@@ -133,7 +143,7 @@ public partial class Analyser
                 if (parent is AssignmentExpressionSyntax)
                     continue;
 
-                if (lookups.TryGet(node.Identifier.ValueText, out var memberAnalysis))
+                if (lookups.TryGetThisType(node.Identifier.ValueText, out var memberAnalysis))
                 {
                     // It's probably a property access. Is it something we've analysed already?
                     memberAnalysis.AddAlsoNotify(AlsoNotifyMember.FromProperty(
@@ -150,6 +160,12 @@ public partial class Analyser
                     {
                         this.ResolveAutoDependsOn(typeAnalysis, notifyProperty, dependsOn, lookups, visitedProperties.Add(dependsOn));
                     }
+                }
+                else if (lookups.TryGetBaseType(node.Identifier.ValueText, out _))
+                {
+                    typeAnalysis.AddDependsOn(node.Identifier.ValueText, AlsoNotifyMember.FromProperty(
+                        notifyProperty,
+                        this.FindOnPropertyNameChangedMethod(typeAnalysis.TypeSymbol, notifyProperty)));
                 }
                 else if (TypeAndBaseTypes(typeAnalysis.TypeSymbol.BaseType!).SelectMany(x => x.GetMembers().OfType<IPropertySymbol>())
                     .FirstOrDefault(x => !x.IsImplicitlyDeclared && x.Name == node.Identifier.ValueText) is { } baseProperty)

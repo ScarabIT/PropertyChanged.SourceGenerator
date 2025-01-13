@@ -4,6 +4,8 @@ using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis;
 using NUnit.Framework;
 using PropertyChanged.SourceGenerator.UnitTests.Framework;
 
@@ -12,6 +14,11 @@ namespace PropertyChanged.SourceGenerator.UnitTests;
 [TestFixture]
 public class DependsOnTests : TestsBase
 {
+    private static readonly CSharpSyntaxVisitor<SyntaxNode?>[] rewriters = new CSharpSyntaxVisitor<SyntaxNode?>[]
+    {
+        RemovePropertiesRewriter.Instance, RemoveDocumentationRewriter.Instance,
+    };
+
     [Test]
     public void NotifiesDependsOnProperty()
     {
@@ -158,5 +165,50 @@ public class DependsOnTests : TestsBase
             }
             """;
         this.AssertNotifies(input, "SomeViewModel", "Bar", "Foo");
+    }
+
+    [Test]
+    public void HandlesDerivedTypeAutoDependsOn()
+    {
+        string input = """
+            public partial class Base
+            {
+                [Notify]
+                private bool _selected;
+            }
+
+            public partial class Derived : Base
+            {
+                public string Test => Selected ? "foo" : "bar";
+
+                [Notify]
+                private int _baz;
+            }
+        """;
+        this.AssertNotifiesFromBase(input, "Derived", "Selected", "Test");
+        this.AssertThat(input, It.HasFile("Derived", rewriters));
+    }
+
+    [Test]
+    public void HandlesDerivedTypeManualDependsOn()
+    {
+        string input = """
+            public partial class Base
+            {
+                [Notify]
+                private bool _selected;
+            }
+
+            public partial class Derived : Base
+            {
+                [DependsOn(nameof(Selected))]
+                public string Test => Selected ? "foo" : "bar";
+
+                [Notify]
+                private int _baz;
+            }
+        """;
+        this.AssertNotifiesFromBase(input, "Derived", "Selected", "Test");
+        this.AssertThat(input, It.HasFile("Derived", rewriters));
     }
 }
